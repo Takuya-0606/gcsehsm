@@ -60,15 +60,13 @@ const ho_entropy = (nu_cm: number, T: number): number => {
   return R * (x / (ex - 1.0) - Math.log(1.0 - Math.exp(-x)));
 };
 
-const ho_energy = (nu_cm: number, T: number): number => {
-    // Returns internal energy contribution U (J/mol) excluding ZPE
-    // U_thermal = R * theta / (e^(theta/T) - 1)
-    if (nu_cm <= 0.0) return 0.0;
-    const x = (h * c_cm * nu_cm) / (kB * T);
-    const theta = (h * c_cm * nu_cm) / kB; // temperature characteristic
-    // if x is large, U -> 0
-    if (x > 100) return 0.0;
-    return R * theta * (1.0 / (Math.exp(x) - 1.0));
+const _E_one = (v_cm1: number, T: number): number => {
+    if (v_cm1 <= 0.0) return 0.0;
+    const x = (h * c_cm) / (kB * T);
+    const t = x * v_cm1;
+    if (t < 1.0e-12) return 0.0;
+    const e = Math.exp(-t);
+    return R * T * (t * (0.5 + e / (1.0 - e)));
 };
 
 // Quasi-Translational
@@ -87,8 +85,8 @@ const calculateTransProperties = (V10: number, V12: number, mass: number, T: num
 
     // 3 degrees of freedom treated as HO
     const S = 3.0 * ho_entropy(nu_tr_cm, T);
-    const U = 3.0 * ho_energy(nu_tr_cm, T); // Thermal energy (J/mol)
-    return { S, U, nu_tr_cm };
+    const freqs = [nu_tr_cm, nu_tr_cm, nu_tr_cm];
+    return { S, freqs };
 };
 
 // Quasi-Rotational
@@ -134,13 +132,11 @@ const calculateRotProperties = (
     }
 
     let S = 0;
-    let U = 0;
     freqs.forEach(nu => {
         S += ho_entropy(nu, T);
-        U += ho_energy(nu, T);
     });
 
-    return { S, U, freqs };
+  　return { S, freqs };
 };
 
 // ---- Main Calculation Function ----
@@ -167,19 +163,19 @@ export const calculateThermoProperties = (
 
   // 2. Translational (Quasi-Translational)
   let S_trans = 0;
-  let U_trans = 0;
+  let freq_trans: number[] = [];
 
   if (vol10Data.cavityVolume != null && vol12Data.cavityVolume != null && mass > 0) {
     const res = calculateTransProperties(vol10Data.cavityVolume, vol12Data.cavityVolume, mass, tempK);
     S_trans = res.S;
-    U_trans = res.U;
+    freq_trans = res.freqs;
   } else {
     warnings.push("Could not calculate Quasi-Translational properties (Missing Volume or Mass).");
   }
 
   // 3. Rotational (Quasi-Rotational)
   let S_rot = 0;
-  let U_rot = 0;
+  let freq_rot: number[] = [];
 
   if (
     rotConsts.length === 3 && 
@@ -195,28 +191,32 @@ export const calculateThermoProperties = (
         tempK
     );
     S_rot = res.S;
-    U_rot = res.U;
+    freq_rot = res.freqs;
   } else {
     warnings.push("Could not calculate Quasi-Rotational properties (Missing Dipoles, Tensor, or Rot Constants).");
   }
 
   // 4. Vibrational (Harmonic Oscillator)
   let S_vib = 0;
-  let U_vib = 0;
+  const freq_vib: number[] = [];
 
   // Use all frequencies from Freq file
   for (const nu of freqData.frequencies) {
       if (nu > 0) {
           S_vib += ho_entropy(nu, tempK);
-          U_vib += ho_energy(nu, tempK);
+          freq_vib.push(nu);
       }
   }
 
-  // Convert U to kJ/mol (currently J/mol)
-  const U_trans_kJ = U_trans / 1000;
-  const U_rot_kJ = U_rot / 1000;
-  const U_vib_kJ = U_vib / 1000;
+  const E_trans = 0.5 * freq_trans.reduce((sum, v) => sum + _E_one(v, tempK), 0.0);
+  const E_rot = 0.5 * freq_rot.reduce((sum, v) => sum + _E_one(v, tempK), 0.0);
+  const E_vib = freq_vib.reduce((sum, v) => sum + _E_one(v, tempK), 0.0);
 
+  // Convert E to kJ/mol (currently J/mol)
+  const U_trans_kJ = E_trans / 1000;
+  const U_rot_kJ = E_rot / 1000;
+  const U_vib_kJ = E_vib / 1000;
+  
   return {
     entropy: {
       trans: S_trans,
