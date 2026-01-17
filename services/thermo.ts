@@ -14,6 +14,96 @@ const Eh_J = 4.3597447222071e-18;
 
 // ---- Math Helpers ----
 
+/**
+ * ORCA output から "VIBRATIONAL FREQUENCIES" ブロックの cm^-1 を抽出
+ * - 0 や負（虚振動）は除外（cutoff未満も除外可）
+ */
+export const parseOrcaVibrationalFrequenciesCm1 = (
+  outText: string,
+  opts?: { cutoffCm1?: number; includeImaginary?: boolean }
+): number[] => {
+  const cutoff = opts?.cutoffCm1 ?? 1.0;
+  const includeImaginary = opts?.includeImaginary ?? false;
+
+  // "VIBRATIONAL FREQUENCIES" の後ろを拾う（次の空行/他セクションまで）
+  const lines = outText.split(/\r?\n/);
+  const freqs: number[] = [];
+
+  let inBlock = false;
+  for (const line of lines) {
+    if (!inBlock) {
+      if (line.includes('VIBRATIONAL FREQUENCIES')) inBlock = true;
+      continue;
+    }
+
+    // check orca.out
+    if (line.trim() === '') continue;
+    if (line.includes('NORMAL MODES')) break;
+
+    // Example: "     6:    1619.49 cm**-1"
+    const match = line.match(/^\s*\d+\s*:\s*([+-]?\d+(?:\.\d+)?)\s*cm(?:\*\*|-)\s*-1/i);
+    if (!match) continue;
+
+    const freq = Number(match[1]);
+    if (!Number.isFinite(freq)) continue;
+
+    // exclude imaginary parts (negative) by default (includeImaginary=true if needed)
+    if (!includeImaginary && freq <= 0) continue;
+
+    // 0 cm-1 Rotation/Translation and Low-Frequency Handling: Exclude values below cutoff
+    if (Math.abs(freq) < cutoff) continue;
+
+    freqs.push(freq);
+  }
+
+  return freqs;
+};
+
+/**
+ * dimensionless x = h c \tilde{nu} / (kB T)
+ * - wavenumber: cm^-1
+ */
+const vibX_fromCm1 = (wavenumberCm1: number, T: number): number => {
+  // cm^-1 -> m^-1 : *100
+  const nuBar_m = wavenumberCm1 * 100.0;
+  return (h * c_m * nuBar_m) / (kB * T);
+};
+
+export const vibThermoIGM_fromFrequenciesCm1 = (
+  freqsCm1: number[],
+  T: number
+): { Svib: number; Evib: number } => {
+  if (T <= 0) {
+    throw new Error(`Temperature must be > 0 K. got ${T}`);
+  }
+
+  let sumS = 0.0;
+  let sumE_over_RT = 0.0;
+
+  for (const freq of freqsCm1) {
+    const x = vibX_fromCm1(freq, T);
+    if (!(x > 0) || !Number.isFinite(x)) continue;
+
+    // exp(-x) と 1-exp(-x)
+    const ex = Math.exp(-x);
+
+    // numerical stabilization by 1 - exp(-x) to 1 - e^{-x} = -expm1(-x)
+    const oneMinusEx = -Math.expm1(-x);
+    const ex_over_1m_ex = ex / oneMinusEx;
+
+    // S term: x * e^{-x}/(1-e^{-x}) - ln(1-e^{-x})
+    sumS += x * ex_over_1m_ex - Math.log(oneMinusEx);
+
+    // E/(RT) term: x * (1/2 + e^{-x}/(1-e^{-x}))
+    sumE_over_RT += x * (0.5 + ex_over_1m_ex);
+  }
+
+  const Svib = R * sumS;
+  const Evib = R * T * sumE_over_RT;
+
+  return { Svib, Evib };
+};
+
 const dot3 = (a: number[], b: number[]): number => {
   return a[0]*b[0] + a[1]*b[1] + a[2]*b[2];
 };
