@@ -3,6 +3,39 @@ import { ParsedData } from '../types';
 // Regex Helpers based on Python script
 const FLOAT_PATTERN = "[-+]?(?:\\d+\\.?\\d*|\\.\\d+)(?:[Ee][-+]?\\d+)?";
 
+const parseOrcaVibrationalFrequenciesCm1 = (
+  outText: string,
+  opts?: { cutoffCm1?: number; includeImaginary?: boolean }
+): number[] => {
+  const cutoff = opts?.cutoffCm1 ?? 1.0;
+  const includeImaginary = opts?.includeImaginary ?? false;
+  const lines = outText.split(/\r?\n/);
+  const freqs: number[] = [];
+
+  let inBlock = false;
+  for (const line of lines) {
+    if (!inBlock) {
+      if (line.includes('VIBRATIONAL FREQUENCIES')) inBlock = true;
+      continue;
+    }
+
+    if (line.trim() === '') continue;
+    if (line.includes('NORMAL MODES')) break;
+
+    const match = line.match(/^\s*\d+\s*:\s*([+-]?\d+(?:\.\d+)?)\s*cm(?:\*\*|-)\s*-1/i);
+    if (!match) continue;
+
+    const freq = Number(match[1]);
+    if (!Number.isFinite(freq)) continue;
+    if (!includeImaginary && freq <= 0) continue;
+    if (Math.abs(freq) < cutoff) continue;
+
+    freqs.push(freq);
+  }
+
+  return freqs;
+};
+
 export const parseOutputContent = (content: string): ParsedData => {
   const lines = content.split('\n');
   
@@ -21,7 +54,10 @@ export const parseOutputContent = (content: string): ParsedData => {
     const nums = freqMatch[1].trim().split(/\s+/).map(Number);
     frequencies.push(...nums.filter(n => !isNaN(n)));
   }
-
+　if (frequencies.length === 0) {
+   frequencies = parseOrcaVibrationalFrequenciesCm1(content);
+  }
+  
   // 2. Mass
   // "Molecular mass: ...", "Total Mass ...", "Molecular weight = ..."
   const massRegexes = [
