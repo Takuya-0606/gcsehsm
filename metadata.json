@@ -1,0 +1,5 @@
+{
+  "name": "GC-SE-HSM",
+  "description": "A specialized calculator for thermodynamic properties (Entropy, Internal Energy) from computational chemistry output files.",
+  "requestFramePermissions": []
+}
