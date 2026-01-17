@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import { createRoot } from 'react-dom/client';
 import { AppState, FileType, FileState, CalculationResult } from './types';
 import InputSection from './components/InputSection';
 import OutputSection from './components/OutputSection';
@@ -147,15 +146,5 @@ const App: React.FC = () => {
     </div>
   );
 };
-
-const rootElement = document.getElementById('root');
-if (!rootElement) throw new Error('Failed to find the root element');
-
-const root = createRoot(rootElement);
-root.render(
-  <React.StrictMode>
-    <App />
-  </React.StrictMode>
-);
 
 export default App;
