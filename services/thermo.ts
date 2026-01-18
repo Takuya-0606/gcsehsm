@@ -226,7 +226,7 @@ const calculateRotProperties = (
         S += ho_entropy(nu, T);
     });
 
-  <E3><80><80>return { S, freqs };
+    return { S, freqs };
 };
 
 // ---- Main Calculation Function ----
