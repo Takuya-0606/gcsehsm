@@ -7,6 +7,8 @@ interface InputSectionProps {
   appState: AppState;
   onFileChange: (type: FileType, file: File) => void;
   onTempChange: (temp: number) => void;
+  onTempModeChange: (mode: 'single' | 'range') => void;
+  onTempRangeChange: (field: 'start' | 'end' | 'step', value: number) => void;
   onCalculate: () => void;
 }
 
@@ -14,6 +16,8 @@ const InputSection: React.FC<InputSectionProps> = ({
   appState, 
   onFileChange, 
   onTempChange, 
+  onTempModeChange,
+  onTempRangeChange,
   onCalculate 
 }) => {
   
@@ -79,16 +83,78 @@ const InputSection: React.FC<InputSectionProps> = ({
           <h2 className="text-lg font-semibold text-slate-800">IV. Temperature</h2>
         </div>
         <div className="p-6">
-          <label className="block text-sm font-medium text-slate-700 mb-2">Temperature (K)</label>
-          <div className="relative">
-            <Thermometer className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={20}/>
-            <input 
-              type="number" 
-              value={appState.temperature}
-              onChange={(e) => onTempChange(parseFloat(e.target.value))}
-              className="pl-10 block w-full rounded-lg border-slate-300 bg-slate-50 border p-2.5 text-slate-900 focus:ring-blue-500 focus:border-blue-500"
-              placeholder="e.g. 298.15"
-            />
+           <div className="space-y-4">
+            <div className="flex flex-wrap gap-4">
+              <label className="flex items-center gap-2 text-sm font-medium text-slate-700">
+                <input
+                  type="radio"
+                  name="temperature-mode"
+                  checked={appState.temperatureMode === 'single'}
+                  onChange={() => onTempModeChange('single')}
+                  className="text-blue-600 focus:ring-blue-500"
+                />
+                Single temperature
+              </label>
+              <label className="flex items-center gap-2 text-sm font-medium text-slate-700">
+                <input
+                  type="radio"
+                  name="temperature-mode"
+                  checked={appState.temperatureMode === 'range'}
+                  onChange={() => onTempModeChange('range')}
+                  className="text-blue-600 focus:ring-blue-500"
+                />
+                Multiple temperatures (range)
+              </label>
+            </div>
+
+            {appState.temperatureMode === 'single' ? (
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-2">Temperature (K)</label>
+                <div className="relative">
+                  <Thermometer className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={20}/>
+                  <input 
+                    type="number" 
+                    value={appState.temperature}
+                    onChange={(e) => onTempChange(Number(e.target.value))}
+                    className="pl-10 block w-full rounded-lg border-slate-300 bg-slate-50 border p-2.5 text-slate-900 focus:ring-blue-500 focus:border-blue-500"
+                    placeholder="e.g. 298.15"
+                  />
+                </div>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-2">Start (K)</label>
+                  <input
+                    type="number"
+                    value={appState.temperatureRange.start}
+                    onChange={(e) => onTempRangeChange('start', Number(e.target.value))}
+                    className="block w-full rounded-lg border-slate-300 bg-slate-50 border p-2.5 text-slate-900 focus:ring-blue-500 focus:border-blue-500"
+                    placeholder="e.g. 280"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-2">End (K)</label>
+                  <input
+                    type="number"
+                    value={appState.temperatureRange.end}
+                    onChange={(e) => onTempRangeChange('end', Number(e.target.value))}
+                    className="block w-full rounded-lg border-slate-300 bg-slate-50 border p-2.5 text-slate-900 focus:ring-blue-500 focus:border-blue-500"
+                    placeholder="e.g. 320"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-2">Step (K)</label>
+                  <input
+                    type="number"
+                    value={appState.temperatureRange.step}
+                    onChange={(e) => onTempRangeChange('step', Number(e.target.value))}
+                    className="block w-full rounded-lg border-slate-300 bg-slate-50 border p-2.5 text-slate-900 focus:ring-blue-500 focus:border-blue-500"
+                    placeholder="e.g. 5"
+                  />
+                </div>
+              </div>
+            )}
           </div>
         </div>
       </div>
