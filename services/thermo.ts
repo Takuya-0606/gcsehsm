@@ -15,8 +15,8 @@ const Eh_J = 4.3597447222071e-18;
 // ---- Math Helpers ----
 
 /**
- * ORCA output から "VIBRATIONAL FREQUENCIES" ブロックの cm^-1 を抽出
- * - 0 や負（虚振動）は除外（cutoff未満も除外可）
+ * ORCA output <E3><81><8B><E3><82><89> "VIBRATIONAL FREQUENCIES" <E3><83><96><E3><83><AD><E3><83><83><E3><82><AF><E3><81><AE> cm^-1 <E3><82><92><E6><8A><BD><E5><87><BA>
+ * - 0 <E3><82><84><E8><B2><A0><EF><BC><88><E8><99><9A><E6><8C><AF><E5><8B><95><EF><BC><89><E3><81><AF><E9><99><A4><E5><A4><96><EF><BC><88>cutoff<E6><9C><AA><E6><BA><80><E3><82><82><E9><99><A4><E5><A4><96><E5><8F><AF><EF><BC><89>
  */
 export const parseOrcaVibrationalFrequenciesCm1 = (
   outText: string,
@@ -25,7 +25,7 @@ export const parseOrcaVibrationalFrequenciesCm1 = (
   const cutoff = opts?.cutoffCm1 ?? 1.0;
   const includeImaginary = opts?.includeImaginary ?? false;
 
-  // "VIBRATIONAL FREQUENCIES" の後ろを拾う（次の空行/他セクションまで）
+  // "VIBRATIONAL FREQUENCIES" <E3><81><AE><E5><BE><8C><E3><82><8D><E3><82><92><E6><8B><BE><E3><81><86><EF><BC><88><E6><AC><A1><E3><81><AE><E7><A9><BA><E8><A1><8C>/<E4><BB><96><E3><82><BB><E3><82><AF><E3><82><B7><E3><83><A7><E3><83><B3><E3><81><BE><E3><81><A7><EF><BC><89>
   const lines = outText.split(/\r?\n/);
   const freqs: number[] = [];
 
@@ -84,7 +84,7 @@ export const vibThermoIGM_fromFrequenciesCm1 = (
     const x = vibX_fromCm1(freq, T);
     if (!(x > 0) || !Number.isFinite(x)) continue;
 
-    // exp(-x) と 1-exp(-x)
+    // exp(-x) <E3><81><A8> 1-exp(-x)
     const ex = Math.exp(-x);
 
     // numerical stabilization by 1 - exp(-x) to 1 - e^{-x} = -expm1(-x)
@@ -145,7 +145,7 @@ const ho_entropy = (nu_cm: number, T: number): number => {
   if (nu_cm <= 0.0) return 0.0;
   const x = (h * c_cm * nu_cm) / (kB * T);
   // Avoid overflow
-  if (x > 100) return 0.0; 
+  if (x > 100) return 0.0;
   const ex = Math.exp(x);
   return R * (x / (ex - 1.0) - Math.log(1.0 - Math.exp(-x)));
 };
@@ -165,7 +165,7 @@ const calculateTransProperties = (V10: number, V12: number, mass: number, T: num
     const Vfree = Math.pow(Math.pow(V12, 1.0/3.0) - Math.pow(V10, 1.0/3.0), 3.0);
     const L_m = (Math.pow(Vfree * 3 / (4 * Math.PI), 1.0/3.0)) * bohr_m;
     const m_kg = mass * amu_kg;
-    
+
     let nu_tr_cm = 0;
     if (L_m > 0) {
         const omega = Math.sqrt(2.0 * Math.PI * kB * T / m_kg) * 1.0 / L_m;
@@ -181,10 +181,10 @@ const calculateTransProperties = (V10: number, V12: number, mass: number, T: num
 
 // Quasi-Rotational
 const calculateRotProperties = (
-    rotCm: number[], 
-    muLiq: number[], 
-    muGas: number[], 
-    alpha: number[][], 
+    rotCm: number[],
+    muLiq: number[],
+    muGas: number[],
+    alpha: number[][],
     T: number
 ) => {
     const mu_star = [
@@ -204,7 +204,7 @@ const calculateRotProperties = (
         ];
         const au = matvec3(alpha, u);
         const P = dot3(u, au);
-        
+
         if (P > 0) {
             const muE_Eh = (mu_star_norm**2) / P;
             const muE_J = muE_Eh * Eh_J;
@@ -226,7 +226,7 @@ const calculateRotProperties = (
         S += ho_entropy(nu, T);
     });
 
-  　return { S, freqs };
+  <E3><80><80>return { S, freqs };
 };
 
 // ---- Main Calculation Function ----
@@ -239,16 +239,16 @@ export const calculateThermoProperties = (
   dipLiqData: ParsedData,
   tempK: number
 ): CalculationResult => {
-  
+
   const warnings: string[] = [];
 
   // 1. Data Gathering
   // Priority for Mass: Freq -> Vol12 -> Error
   const mass = freqData.mass || vol12Data.mass || 0;
-  
+
   // Rotational Constants: Freq -> Vol12 -> Error
-  const rotConsts = (freqData.rotationalConstants.length === 3) 
-    ? freqData.rotationalConstants 
+  const rotConsts = (freqData.rotationalConstants.length === 3)
+    ? freqData.rotationalConstants
     : vol12Data.rotationalConstants;
 
   // 2. Translational (Quasi-Translational)
@@ -268,9 +268,9 @@ export const calculateThermoProperties = (
   let freq_rot: number[] = [];
 
   if (
-    rotConsts.length === 3 && 
-    dipLiqData.dipoleVector && 
-    dipGasData.dipoleVector && 
+    rotConsts.length === 3 &&
+    dipLiqData.dipoleVector &&
+    dipGasData.dipoleVector &&
     dipGasData.polarizabilityTensor
   ) {
     const res = calculateRotProperties(
@@ -306,7 +306,7 @@ export const calculateThermoProperties = (
   const U_trans_kJ = E_trans / 1000;
   const U_rot_kJ = E_rot / 1000;
   const U_vib_kJ = E_vib / 1000;
-  
+
   return {
     entropy: {
       trans: S_trans,
