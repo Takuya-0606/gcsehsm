@@ -5,6 +5,7 @@ import OutputSection from './components/OutputSection';
 import { parseOutputContent, validateRequiredData } from './services/parser';
 import { calculateThermoProperties } from './services/thermo';
 import { FlaskConical } from 'lucide-react';
+import InputBuilder from './components/InputBuilder';
 
 const initialFileState: FileState = {
   file: null,
@@ -14,6 +15,7 @@ const initialFileState: FileState = {
 };
 
 const App: React.FC = () => {
+  const [mode, setMode] = useState<'input-builder' | 'output-analyzer'>('input-builder');
   const [step, setStep] = useState<1 | 2>(1);
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
@@ -151,13 +153,37 @@ const App: React.FC = () => {
       
       {/* Header */}
       <header className="bg-white border-b border-slate-200 sticky top-0 z-10">
-        <div className="max-w-5xl mx-auto px-4 h-16 flex items-center gap-3">
-          <div className="bg-blue-600 p-2 rounded-lg text-white">
-            <FlaskConical size={24} />
+        <div className="max-w-5xl mx-auto px-4 h-16 flex items-center justify-between gap-3">
+          <div className="flex items-center gap-3">
+            <div className="bg-blue-600 p-2 rounded-lg text-white">
+              <FlaskConical size={24} />
+            </div>
+            <h1 className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-700 to-indigo-600">
+              Gauusian Charge distributed Semi-empirical Harmonic Solvation Model (GC-SE-HSM)
+            </h1>
           </div>
-          <h1 className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-700 to-indigo-600">
-            Gauusian Charge distributed Semi-empirical Harmonic Solvation Model (GC-SE-HSM)
-          </h1>
+          <div className="flex items-center gap-2 bg-slate-100 p-1 rounded-full text-sm">
+            <button
+              onClick={() => setMode('input-builder')}
+              className={`px-4 py-1.5 rounded-full transition ${
+                mode === 'input-builder'
+                  ? 'bg-blue-600 text-white shadow'
+                  : 'text-slate-600 hover:text-slate-800'
+              }`}
+            >
+              Input Builder
+            </button>
+            <button
+              onClick={() => setMode('output-analyzer')}
+              className={`px-4 py-1.5 rounded-full transition ${
+                mode === 'output-analyzer'
+                  ? 'bg-blue-600 text-white shadow'
+                  : 'text-slate-600 hover:text-slate-800'
+              }`}
+            >
+              Output Analyzer
+            </button>
+          </div>
         </div>
       </header>
 
@@ -172,8 +198,10 @@ const App: React.FC = () => {
           </div>
         )}
 
-        {step === 1 && (
-          <InputSection 
+        {mode === 'input-builder' && <InputBuilder />}
+
+        {mode === 'output-analyzer' && step === 1 && (
+          <InputSection
             appState={appState}
             onFileChange={handleFileChange}
             onTempChange={handleTempChange}
@@ -183,8 +211,8 @@ const App: React.FC = () => {
           />
         )}
 
-        {step === 2 && results && (
-          <OutputSection 
+        {mode === 'output-analyzer' && step === 2 && results && (
+          <OutputSection
             result={results}
             onBack={() => setStep(1)}
           />
