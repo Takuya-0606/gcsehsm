@@ -1,0 +1,186 @@
+# CPCM Solvent List
+
+- 1,1,1-trichloroethane
+- 1,1,2-trichloroethane
+- 1,2,4-trimethylbenzene
+- 1,2-dibromoethane
+- 1,2-dichloroethane
+- 1,2-ethanediol
+- 1,4-dioxane / dioxane
+- 1-bromo-2-methylpropane
+- 1-bromooctane / bromooctane
+- 1-bromopentane
+- 1-bromopropane
+- 1-butanol / butanol
+- 1-chlorohexane / chlorohexane
+- 1-chloropentane
+- 1-chloropropane
+- 1-decanol / decanol
+- 1-fluorooctane
+- 1-heptanol / heptanol
+- 1-hexanol / hexanol
+- 1-hexene
+- 1-hexyne
+- 1-iodobutane
+- 1-iodohexadecane / hexadecyliodide
+- 1-iodopentane
+- 1-iodopropane
+- 1-nitropropane
+- 1-nonanol / nonanol
+- 1-octanol / octanol
+- 1-pentanol / pentanol
+- 1-pentene
+- 1-propanol / propanol
+- 2,2,2-trifluoroethanol
+- 2,2,4-trimethylpentane / isooctane
+- 2,4-dimethylpentane
+- 2,4-dimethylpyridine
+- 2,6-dimethylpyridine
+- 2-bromopropane
+- 2-butanol / secbutanol
+- 2-chlorobutane
+- 2-heptanone
+- 2-hexanone
+- 2-methoxyethanol / methoxyethanol
+- 2-methyl-1-propanol / isobutanol
+- 2-methyl-2-propanol
+- 2-methylpentane
+- 2-methylpyridine / 2methylpyridine
+- 2-nitropropane
+- 2-octanone
+- 2-pentanone
+- 2-propanol / isopropanol
+- 2-propen-1-ol
+- e-2-pentene
+- 3-methylpyridine
+- 3-pentanone
+- 4-heptanone
+- 4-methyl-2-pentanone / 4methyl2pentanone
+- 4-methylpyridine
+- 5-nonanone
+- acetic acid / aceticacid
+- acetone
+- acetonitrile / mecn / ch3cn
+- acetophenone
+- ammonia
+- aniline
+- anisole
+- benzaldehyde
+- benzene
+- benzonitrile
+- benzyl alcohol / benzylalcohol
+- bromobenzene
+- bromoethane
+- bromoform
+- butanal
+- butanoic acid
+- butanone
+- butanonitrile
+- butyl ethanoate / butyl acetate / butylacetate
+- butylamine
+- n-butylbenzene / butylbenzene
+- sec-butylbenzene / secbutylbenzene
+- tert-butylbenzene / tbutylbenzene
+- carbon disulfide / carbondisulfide / cs2
+- carbon tetrachloride / ccl4
+- chlorobenzene
+- chloroform / chcl3
+- a-chlorotoluene
+- o-chlorotoluene
+- conductor
+- m-cresol / mcresol
+- o-cresol
+- cyclohexane
+- cyclohexanone
+- cyclopentane
+- cyclopentanol
+- cyclopentanone
+- decalin
+- cis-decalin
+- n-decane / decane
+- dibromomethane
+- dibutylether
+- o-dichlorobenzene / odichlorobenzene
+- e-1,2-dichloroethene
+- z-1,2-dichloroethene
+- dichloromethane / ch2cl2 / dcm
+- diethyl ether / diethylether
+- diethyl sulfide
+- diethylamine
+- diiodomethane
+- diisopropyl ether / diisopropylether
+- cis-1,2-dimethylcyclohexane
+- dimethyl disulfide
+- n,n-dimethylacetamide / dimethylacetamide
+- n,n-dimethylformamide / dimethylformamide / dmf
+- dimethylsulfoxide / dmso
+- diphenylether
+- dipropylamine
+- n-dodecane / dodecane
+- ethanethiol
+- ethanol
+- ethyl acetate / ethylacetate / ethanoate
+- ethyl methanoate
+- ethyl phenyl ether / ethoxybenzene
+- ethylbenzene
+- fluorobenzene
+- formamide
+- formic acid
+- furan / furane
+- n-heptane / heptane
+- n-hexadecane / hexadecane
+- n-hexane / hexane
+- hexanoic acid
+- iodobenzene
+- iodoethane
+- iodomethane
+- isopropylbenzene
+- p-isopropyltoluene / isopropyltoluene
+- mesitylene
+- methanol
+- methyl benzoate
+- methyl butanoate
+- methyl ethanoate
+- methyl methanoate
+- methyl propanoate
+- n-methylaniline
+- methylcyclohexane
+- n-methylformamide / methylformamide
+- nitrobenzene / phno2
+- nitroethane
+- nitromethane / meno2
+- o-nitrotoluene / onitrotoluene
+- n-nonane / nonane
+- n-octane / octane
+- n-pentadecane / pentadecane
+- octanol(wet) / wetoctanol / woctanol
+- pentanal
+- n-pentane / pentane
+- pentanoic acid
+- pentyl ethanoate
+- pentylamine
+- perfluorobenzene / hexafluorobenzene
+- phenol
+- propanal
+- propanoic acid
+- propanonitrile
+- propyl ethanoate
+- propylamine
+- pyridine
+- tetrachloroethene / c2cl4
+- tetrahydrofuran / thf
+- tetrahydrothiophene-s,s-dioxide / tetrahydrothiophenedioxide / sulfolane
+- tetralin
+- thiophene
+- thiophenol
+- toluene
+- trans-decalin
+- tributylphosphate
+- trichloroethene
+- triethylamine
+- n-undecane / undecane
+- water / h2o
+- xylene
+- m-xylene
+- o-xylene
+- p-xylene
