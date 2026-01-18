@@ -4,7 +4,7 @@ import { ParsedData } from '../types';
 const FLOAT_PATTERN = "[-+]?(?:\\d+\\.?\\d*|\\.\\d+)(?:[Ee][-+]?\\d+)?";
 
 const parseOrcaVibrationalFrequenciesCm1 = (
-  outText: string,
+　outText: string,
   opts?: { cutoffCm1?: number; includeImaginary?: boolean }
 ): number[] => {
   const cutoff = opts?.cutoffCm1 ?? 1.0;
@@ -38,7 +38,7 @@ const parseOrcaVibrationalFrequenciesCm1 = (
 
 export const parseOutputContent = (content: string): ParsedData => {
   const lines = content.split('\n');
-  
+
   let frequencies: number[] = [];
   let mass: number | null = null;
   let rotationalConstants: number[] = [];
@@ -48,16 +48,28 @@ export const parseOutputContent = (content: string): ParsedData => {
 
   // 1. Frequencies
   // Look for "Frequencies -- 123.4 567.8 ..."
+  const uniqFreqs = (arr: number[], tol = 1e-3) => {
+    const a = arr.filter(Number.isFinite).sort((x, y) => x - y);
+    const out: number[] = [];
+    for (const x of a) {
+      if (out.length === 0 || Math.abs(x - out[out.length - 1]) > tol) out.push(x);
+    }
+    return out;
+  };
+
   const freqRegex = /Frequencies\s+--\s+(.*)/g;
-  let freqMatch;
+  let freqMatch: RegExpExecArray | null;
+
   while ((freqMatch = freqRegex.exec(content)) !== null) {
     const nums = freqMatch[1].trim().split(/\s+/).map(Number);
-    frequencies.push(...nums.filter(n => !isNaN(n)));
+    frequencies.push(...nums.filter(n => Number.isFinite(n)));
   }
-　if (frequencies.length === 0) {
-   frequencies = parseOrcaVibrationalFrequenciesCm1(content);
+
+  if (frequencies.length === 0) {
+    frequencies = parseOrcaVibrationalFrequenciesCm1(content);
   }
-  
+  frequencies = uniqFreqs(frequencies);
+
   // 2. Mass
   // "Molecular mass: ...", "Total Mass ...", "Molecular weight = ..."
   const massRegexes = [
@@ -82,18 +94,18 @@ export const parseOutputContent = (content: string): ParsedData => {
   if (rotMatch) {
     rotationalConstants = [parseFloat(rotMatch[1]), parseFloat(rotMatch[2]), parseFloat(rotMatch[3])];
   } else {
-    // Fallback: Try to find "Rotational constants (GHZ):" and convert? 
+    // Fallback: Try to find "Rotational constants (GHZ):" and convert?
     // Or "Rotational temperatures" and convert back?
     // For now, let's look for the standard patterns.
   }
 
   // 4. Cavity Volume
-  const volRegex = new RegExp(`(?:Volume|Cavity\\s+Volume).*?(${FLOAT_PATTERN})`, 'is');
-  const volMatch = content.match(volRegex);
-  if (volMatch) {
-    cavityVolume = parseFloat(volMatch[1]);
-  }
-
+ const cavVolMatch = content.match(
+   new RegExp(`^\\s*Cavity\\s+Volume\\s+\\.\\.\\.\\s+(${FLOAT_PATTERN})\\s*$`, 'im')
+ );
+ if (cavVolMatch) {
+   cavityVolume = parseFloat(cavVolMatch[1]);
+ }
   // 5. Dipole Vector (x, y, z)
   // "Total Dipole Moment : ... X Y Z"
   const dipRegex = new RegExp(`Total\\s+Dipole\\s+Moment.*?(${FLOAT_PATTERN})\\s+(${FLOAT_PATTERN})\\s+(${FLOAT_PATTERN})`, 'i');
@@ -115,7 +127,7 @@ export const parseOutputContent = (content: string): ParsedData => {
     const remainder = content.slice(polarHeaderMatch.index + polarHeaderMatch[0].length);
     const lineFloatPattern = `(${FLOAT_PATTERN})\\s+(${FLOAT_PATTERN})\\s+(${FLOAT_PATTERN})`;
     const tensorRegex = new RegExp(lineFloatPattern, 'g');
-    
+
     const rows: [number, number, number][] = [];
     let rowMatch;
     let count = 0;
@@ -123,7 +135,7 @@ export const parseOutputContent = (content: string): ParsedData => {
       rows.push([parseFloat(rowMatch[1]), parseFloat(rowMatch[2]), parseFloat(rowMatch[3])]);
       count++;
     }
-    
+
     if (rows.length === 3) {
       polarizabilityTensor = [rows[0], rows[1], rows[2]];
     }
