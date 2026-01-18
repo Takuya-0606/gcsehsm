@@ -20,7 +20,13 @@ export interface FileState {
 
 export interface AppState {
   files: Record<FileType, FileState>;
+  temperatureMode: 'single' | 'range';
   temperature: number;
+  temperatureRange: {
+    start: number;
+    end: number;
+    step: number;
+  };
 }
 
 export interface CalculationResult {
@@ -37,4 +43,9 @@ export interface CalculationResult {
     total: number;
   };
   warnings: string[];
+}
+
+export interface CalculationRow {
+  temperature: number;
+  result: CalculationResult;
 }
