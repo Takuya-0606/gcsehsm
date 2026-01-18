@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { AppState, FileType, FileState, CalculationResult } from './types';
+import { AppState, FileType, FileState, CalculationRow } from './types';
 import InputSection from './components/InputSection';
 import OutputSection from './components/OutputSection';
 import { parseOutputContent, validateRequiredData } from './services/parser';
@@ -26,10 +26,16 @@ const App: React.FC = () => {
       dip_gas: { ...initialFileState },
       dip_liq: { ...initialFileState },
     },
-    temperature: 298.15
+    temperatureMode: 'single',
+    temperature: 298.15,
+    temperatureRange: {
+      start: 280,
+      end: 320,
+      step: 5
+    }  
   });
 
-  const [result, setResult] = useState<CalculationResult | null>(null);
+  const [results, setResults] = useState<CalculationRow[] | null>(null);
 
   const handleFileChange = async (type: FileType, file: File) => {
     const text = await file.text();
@@ -51,6 +57,46 @@ const App: React.FC = () => {
 
   const handleTempChange = (temp: number) => {
     setAppState(prev => ({ ...prev, temperature: temp }));
+  };
+
+  const handleTempModeChange = (mode: 'single' | 'range') => {
+    setAppState(prev => ({ ...prev, temperatureMode: mode }));
+  };
+
+  const handleTempRangeChange = (field: 'start' | 'end' | 'step', value: number) => {
+    setAppState(prev => ({
+      ...prev,
+      temperatureRange: {
+        ...prev.temperatureRange,
+        [field]: value
+      }
+    }));
+  };
+
+  const buildTemperatureList = () => {
+    if (appState.temperatureMode === 'single') {
+      return [appState.temperature];
+    }
+
+    const { start, end, step } = appState.temperatureRange;
+
+    if (!Number.isFinite(start) || !Number.isFinite(end) || !Number.isFinite(step)) {
+      return { error: 'Error: Temperature range values must be valid numbers.' };
+    }
+
+    if (step <= 0) {
+      return { error: 'Error: Temperature step must be greater than 0.' };
+    }
+
+    if (end < start) {
+      return { error: 'Error: Temperature end must be greater than or equal to start.' };
+    }
+
+    const temps: number[] = [];
+    for (let t = start; t <= end + step / 1000; t += step) {
+      temps.push(Number(t.toFixed(6)));
+    }
+    return temps;
   };
 
   const handleCalculate = () => {
@@ -75,18 +121,26 @@ const App: React.FC = () => {
         return;
       }
 
-      // 3. Calculate
-      // Safe to cast as non-null because validation passed
-      const calcResult = calculateThermoProperties(
-        freq!,
-        vol10!,
-        vol12!,
-        dipGas!,
-        dipLiq!,
-        appState.temperature
-      );
+      const tempList = buildTemperatureList();
+      if (!Array.isArray(tempList)) {
+        setErrorMsg(tempList.error);
+        setLoading(false);
+        return;
+      }
 
-      setResult(calcResult);
+      const calcRows = tempList.map(tempK => ({
+        temperature: tempK,
+        result: calculateThermoProperties(
+          freq!,
+          vol10!,
+          vol12!,
+          dipGas!,
+          dipLiq!,
+          tempK
+        )
+      }));
+
+      setResults(calcRows);
       setStep(2);
       setLoading(false);
     }, 600); // Small delay for UX
@@ -102,7 +156,7 @@ const App: React.FC = () => {
             <FlaskConical size={24} />
           </div>
           <h1 className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-700 to-indigo-600">
-            ThermoCalc Pro
+            Gauusian Charge distributed Semi-empirical Harmonic Solvation Model (GC-SE-HSM)
           </h1>
         </div>
       </header>
@@ -123,13 +177,15 @@ const App: React.FC = () => {
             appState={appState}
             onFileChange={handleFileChange}
             onTempChange={handleTempChange}
+            onTempModeChange={handleTempModeChange}
+            onTempRangeChange={handleTempRangeChange}
             onCalculate={handleCalculate}
           />
         )}
 
-        {step === 2 && result && (
+        {step === 2 && results && (
           <OutputSection 
-            result={result}
+            result={results}
             onBack={() => setStep(1)}
           />
         )}
