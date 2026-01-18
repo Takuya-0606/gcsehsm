@@ -7,10 +7,10 @@ interface OutputSectionProps {
   onBack: () => void;
 }
 
-const OutputSection: React.FC<OutputSectionProps> = ({ results, onBack }) => {
+const OutputSection: React.FC<OutputSectionProps> = ({ result, onBack }) => {
   
   const formatNum = (num: number, digits = 4) => num.toFixed(digits);
-  const warnings = results.flatMap(row => row.result.warnings.map(w => `T=${row.temperature} K: ${w}`));
+  const warnings = result.flatMap(row => row.result.warnings.map(w => `T=${row.temperature} K: ${w}`));
 
   return (
     <div className="max-w-3xl mx-auto space-y-8 animate-in fade-in slide-in-from-right-8 duration-500">
@@ -62,7 +62,7 @@ const OutputSection: React.FC<OutputSectionProps> = ({ results, onBack }) => {
               </tr>
             </thead>
             <tbody>
-              {results.map(row => (
+              {result.map(row => (
                 <tr key={row.temperature} className="bg-slate-50 text-slate-700">
                   <td className="px-3 py-2 font-semibold text-slate-900">{formatNum(row.temperature, 2)}</td>
                   <td className="px-3 py-2 font-mono">{formatNum(row.result.entropy.trans)}</td>
