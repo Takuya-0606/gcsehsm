@@ -12,6 +12,21 @@ const amu_kg = 1.66053906660e-27;
 const bohr_m = 5.29177210903e-11;
 const Eh_J = 4.3597447222071e-18;
 
+// qRRHO-style mixing parameters for quasi-rotational modes
+const NU_C_ROT = 20.0;  // cm^-1 (parameter)
+const P_MIX = 4.0;      // sharpness (parameter)
+
+const w_mix = (nu: number) => {
+  const nuSafe = Math.max(nu, 1.0e-12);
+  return 1.0 / (1.0 + Math.pow(NU_C_ROT / nuSafe, P_MIX));
+};
+
+const s_rotor_1d = (I: number, T: number, sigma = 1.0) => {
+  const q = (2.0 * Math.PI * I * kB * T) / (sigma * h * h);
+  if (!(q > 0) || !Number.isFinite(q)) return 0.0;
+  return R * (Math.log(q) + 1.0);
+};
+
 // ---- Math Helpers ----
 export const parseOrcaVibrationalFrequenciesCm1 = (
   outText: string,
@@ -20,7 +35,7 @@ export const parseOrcaVibrationalFrequenciesCm1 = (
   const cutoff = opts?.cutoffCm1 ?? 1.0;
   const includeImaginary = opts?.includeImaginary ?? false;
 
-  // "VIBRATIONAL FREQUENCIES" 
+  // "VIBRATIONAL FREQUENCIES"
   const freqs: number[] = [];
 
   let inBlock = false;
@@ -158,7 +173,8 @@ const calculateTransProperties = (V10: number, V12: number, mass: number, T: num
     // V10, V12 in Bohr^3
     // r -> 2r
     const Vfree = Math.pow(Math.pow(V12, 1.0/3.0) - Math.pow(V10, 1.0/3.0), 3.0);
-    const L_m = 2 * (Math.pow(Vfree * 3 / (4 * Math.PI), 1.0/3.0)) * bohr_m;
+    const L_m = (Math.pow(Vfree * 3 / (4 * Math.PI), 1.0/3.0)) * bohr_m;
+    //const L_m = (Math.pow(Vfree, 1.0/3.0)) * bohr_m;
     const m_kg = mass * amu_kg;
 
     let nu_tr_cm = 0;
@@ -203,25 +219,28 @@ const calculateRotProperties = (
         if (P > 0) {
             const muE_Eh = (mu_star_norm**2) / P;
             const muE_J = muE_Eh * Eh_J;
-            const k_eff_J = _keff_from_muE(muE_J, T); // Using average-curvature by default
-
-            // Calculate frequencies for A, B, C
-            freqs = rotCm.map(Bcm => {
-                if (Bcm === 0.0) return 0.0;
+            const k_eff_J = _keff_from_muE(muE_J, T);
+            const pairs = rotCm.map(Bcm => {
+                if (Bcm === 0.0) return { nu: 0.0, I: 0.0 };
                 const B_m = Bcm * 100.0;
                 const I = h / (8.0 * Math.PI**2 * c_m * B_m);
                 const nu_hz = (1.0 / (2.0 * Math.PI)) * Math.sqrt(k_eff_J / I);
-                return nu_hz / c_cm;
+                const nu_cm = nu_hz / c_cm;
+                return { nu: nu_cm, I };
             });
+
+            freqs = pairs.map(pair => pair.nu);
+
+            let S = 0.0;
+            for (const { nu, I } of pairs) {
+                const w = w_mix(nu);
+                S += w * ho_entropy(nu, T) + (1.0 - w) * s_rotor_1d(I, T);
+            }
+
+            return { S, freqs };
         }
     }
-
-    let S = 0;
-    freqs.forEach(nu => {
-        S += ho_entropy(nu, T);
-    });
-
-    return { S, freqs };
+    return { S: 0.0, freqs };
 };
 
 // ---- Main Calculation Function ----
