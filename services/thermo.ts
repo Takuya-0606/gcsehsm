@@ -13,11 +13,6 @@ const bohr_m = 5.29177210903e-11;
 const Eh_J = 4.3597447222071e-18;
 
 // ---- Math Helpers ----
-
-/**
- * ORCA output <E3><81><8B><E3><82><89> "VIBRATIONAL FREQUENCIES" <E3><83><96><E3><83><AD><E3><83><83><E3><82><AF><E3><81><AE> cm^-1 <E3><82><92><E6><8A><BD><E5><87><BA>
- * - 0 <E3><82><84><E8><B2><A0><EF><BC><88><E8><99><9A><E6><8C><AF><E5><8B><95><EF><BC><89><E3><81><AF><E9><99><A4><E5><A4><96><EF><BC><88>cutoff<E6><9C><AA><E6><BA><80><E3><82><82><E9><99><A4><E5><A4><96><E5><8F><AF><EF><BC><89>
- */
 export const parseOrcaVibrationalFrequenciesCm1 = (
   outText: string,
   opts?: { cutoffCm1?: number; includeImaginary?: boolean }
@@ -25,8 +20,7 @@ export const parseOrcaVibrationalFrequenciesCm1 = (
   const cutoff = opts?.cutoffCm1 ?? 1.0;
   const includeImaginary = opts?.includeImaginary ?? false;
 
-  // "VIBRATIONAL FREQUENCIES" <E3><81><AE><E5><BE><8C><E3><82><8D><E3><82><92><E6><8B><BE><E3><81><86><EF><BC><88><E6><AC><A1><E3><81><AE><E7><A9><BA><E8><A1><8C>/<E4><BB><96><E3><82><BB><E3><82><AF><E3><82><B7><E3><83><A7><E3><83><B3><E3><81><BE><E3><81><A7><EF><BC><89>
-  const lines = outText.split(/\r?\n/);
+  // "VIBRATIONAL FREQUENCIES" 
   const freqs: number[] = [];
 
   let inBlock = false;
@@ -162,8 +156,9 @@ const _E_one = (v_cm1: number, T: number): number => {
 // Quasi-Translational
 const calculateTransProperties = (V10: number, V12: number, mass: number, T: number) => {
     // V10, V12 in Bohr^3
+    // r -> 2r
     const Vfree = Math.pow(Math.pow(V12, 1.0/3.0) - Math.pow(V10, 1.0/3.0), 3.0);
-    const L_m = (Math.pow(Vfree * 3 / (4 * Math.PI), 1.0/3.0)) * bohr_m;
+    const L_m = 2 * (Math.pow(Vfree * 3 / (4 * Math.PI), 1.0/3.0)) * bohr_m;
     const m_kg = mass * amu_kg;
 
     let nu_tr_cm = 0;
